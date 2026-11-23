@@ -24,3 +24,12 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Core fix by subagent: `premerge describe` no longer prints an extra trailing blank line.
 - Deviations accepted: extra `tests/base.py` (`FixtureCase`, sets git-config isolation env for in-process calls);
   fixture's app.py ends up with 3 hunks (test asserts ≥2); empty global gitconfig is `$TMPDIR/premerge-empty-gitconfig`.
+
+## T03 — Theme, icons, background jobs, Markdown view — DONE
+- Verified: 54 tests pass; every §5 colour and syntax mapping checked programmatically; icon strip + widgets rendered
+  and inspected (all 30 shapes crisp).
+- Orchestrator fix: `MarkdownView` — `QTextDocument.setMarkdown` ignores the default stylesheet, so code spans/fences
+  had no code font/background. Added `_style_code()` post-processing (fixed-pitch fragments and code-fence blocks get
+  the system fixed font + `bg_highlight`); placeholder text is now HTML-escaped.
+- Deviations accepted: `Theme` has no `dark` field; `palette(t)` kept public; jobs bridge created lazily on first
+  `run` (must be first called from the GUI thread). Tests import the helper as `from tests import qt`.
