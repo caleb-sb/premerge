@@ -33,3 +33,12 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
   the system fixed font + `bg_highlight`); placeholder text is now HTML-escaped.
 - Deviations accepted: `Theme` has no `dark` field; `palette(t)` kept public; jobs bridge created lazily on first
   `run` (must be first called from the GUI thread). Tests import the helper as `from tests import qt`.
+
+## T04 — Tree ordering and the Session model — DONE
+- Verified: 65 tests pass; `tree_order`/`build_tree` checked by hand (dirs first, casefold, chain compression,
+  root never merged); Session signals/queries/mutations/start/stop names match the task; load/pending/generation and
+  poll logic read and judged correct.
+- Deviations accepted: `set_mode` reloads the whole "code" kind (meta+files+commits), so meta/commits signals also
+  fire; initial `review["description"]` is None until the first load.
+- Known issue (spec-level): polling watches branch/HEAD/worktree/store only — a `git fetch` that moves the base ref
+  isn't picked up until the next manual refresh.
