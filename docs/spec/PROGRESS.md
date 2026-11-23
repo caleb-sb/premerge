@@ -17,3 +17,10 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Deviations accepted: `PrPlan` gained a trailing `source: str = ""` field (description source for the CLI plan).
 - Spec bug: acceptance `grep -rn "evie"` matches the word "review"; the word-boundary grep (`grep -rniw evie`) is clean.
 - Not verified: `publish.execute` (would need a real remote; never run).
+
+## T02 — Fixture repo and core tests — DONE
+- Verified: 48 tests pass (~1.5 s) on rerun; publish tests assert the fake `gh` resolves first before `execute`
+  (real /usr/bin/gh is never run).
+- Core fix by subagent: `premerge describe` no longer prints an extra trailing blank line.
+- Deviations accepted: extra `tests/base.py` (`FixtureCase`, sets git-config isolation env for in-process calls);
+  fixture's app.py ends up with 3 hunks (test asserts ≥2); empty global gitconfig is `$TMPDIR/premerge-empty-gitconfig`.

@@ -63,7 +63,7 @@ def cmd_describe(repo: Repo, args) -> int:
     if args.json:
         print(json.dumps(desc, indent=2, ensure_ascii=False))
     else:
-        print(f"# {desc['title']}\n\n{desc['body'].rstrip()}\n")
+        print(f"# {desc['title']}\n\n{desc['body'].rstrip()}")
         if not desc["saved"]:
             print(f"<!-- not saved yet: prefilled from {desc['source']} -->", file=sys.stderr)
     return 0
