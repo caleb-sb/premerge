@@ -78,3 +78,16 @@ class CliTests(FixtureCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GuiDispatchTests(unittest.TestCase):
+    def test_gui_starts_outside_a_repo(self):
+        """Finder/Spotlight start apps in /: the GUI must get to choose its repository itself."""
+        from unittest import mock
+
+        from premerge import cli
+
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(cli, "cmd_gui", return_value=0) as gui:
+            self.assertEqual(cli.main(["-C", d]), 0)
+            self.assertEqual(cli.main(["-C", d, "gui"]), 0)
+        self.assertEqual(gui.call_count, 2)

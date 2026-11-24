@@ -80,6 +80,11 @@ jobs:
           if ! kill -0 "$PID" 2>/dev/null; then cat "$T/gui.log"; echo "GUI exited early"; exit 1; fi
           kill "$PID"
           cat "$T/gui.log"
+          # Finder and Spotlight start the app in / with no arguments: it must stay up (folder picker).
+          (cd / && QT_QPA_PLATFORM=offscreen "$BIN" > "$T/gui-root.log" 2>&1) &
+          sleep 10
+          if ! pgrep -f "$BIN" > /dev/null; then cat "$T/gui-root.log" ~/Library/Logs/premerge.log 2>/dev/null; echo "GUI exited when started from /"; exit 1; fi
+          pkill -f "$BIN"
 
       - name: Build DMG
         run: |

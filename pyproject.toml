@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "premerge"
-version = "0.1.0"
+version = "0.1.1"
 description = "Preview your branch as a pull/merge request locally and review it with a coding agent."
 requires-python = ">=3.11"
 dependencies = ["PySide6>=6.6", "Pygments>=2.17"]

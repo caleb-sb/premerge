@@ -148,11 +148,12 @@ def main(argv: list[str] | None = None) -> int:
         # macOS may pass a process serial number (-psn_…) to apps launched from Finder.
         argv = [a for a in sys.argv[1:] if not a.startswith("-psn_")]
     args = build_parser().parse_args(argv)
+    if args.cmd in (None, "gui"):
+        # The GUI finds (or asks for) its repository itself: apps started from Finder run in /.
+        return cmd_gui(args)
     try:
         repo = Repo(args.repo, args.base, args.remote, args.forge)
         match args.cmd:
-            case None | "gui":
-                return cmd_gui(args)
             case "comments":
                 return cmd_comments(repo, args)
             case "reply":
