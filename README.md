@@ -8,10 +8,29 @@ seconds. When you are happy, `premerge pr` creates the real PR/MR. It runs on Li
 
 ## Install
 
-Requires Python 3.11 or newer. `gh` (GitHub) and `glab` (GitLab) are only needed to create PRs/MRs.
+### macOS app (Apple Silicon)
+
+1. Download `premerge-<version>-macos-arm64.dmg` from the [latest release](https://github.com/caleb-sb/premerge/releases/latest).
+2. Open it and drag **premerge.app** into Applications (or `~/Applications`). It then shows up in Spotlight and Launchpad.
+3. The app is not notarized. On first launch, if macOS says it can't verify the developer, open
+   System Settings → Privacy & Security and click **Open Anyway** (or run
+   `xattr -dr com.apple.quarantine ~/Applications/premerge.app` once).
+
+Started from Spotlight or the Dock, premerge opens your most recent repository, or asks you to choose one; use
+File → Open Repository… (⌘O) to switch. For the agent loop the app's binary is also the CLI; put it on your `PATH`:
 
 ```sh
-git clone <this repository> premerge && cd premerge
+ln -s ~/Applications/premerge.app/Contents/MacOS/premerge /opt/homebrew/bin/premerge   # or any dir on PATH
+```
+
+`gh` (GitHub) and `glab` (GitLab) are only needed to create PRs/MRs; Homebrew's paths are picked up automatically.
+
+### From source (Linux and macOS)
+
+Requires Python 3.11 or newer.
+
+```sh
+git clone https://github.com/caleb-sb/premerge.git && cd premerge
 python3 -m venv .venv && .venv/bin/pip install -e .
 mkdir -p ~/.local/bin && ln -s "$PWD/.venv/bin/premerge" ~/.local/bin/premerge
 ```
@@ -121,3 +140,7 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python tools/shot.py shots   # offscreen scr
 ```
 
 `premerge/core` (git, store, anchors, prompt, publish) never imports Qt, so the CLI works without a display.
+
+Releases: pushing a `v*` tag runs `.github/workflows/macos.yml` on an Apple Silicon runner, which runs the tests,
+builds `premerge.app` with PyInstaller (icon from `tools/make_icon.py`), smoke-tests it and attaches a DMG to the
+GitHub release.

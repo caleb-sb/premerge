@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -132,8 +133,21 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
+def _darwin_env() -> None:
+    """Apps started from Finder get a minimal PATH; add the usual Homebrew locations for git, gh and glab."""
+    if sys.platform != "darwin":
+        return
+    parts = os.environ.get("PATH", "/usr/bin:/bin:/usr/sbin:/sbin").split(os.pathsep)
+    extra = [d for d in ("/opt/homebrew/bin", "/usr/local/bin") if d not in parts and os.path.isdir(d)]
+    os.environ["PATH"] = os.pathsep.join(extra + parts)
+
+
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(sys.argv[1:] if argv is None else argv)
+    _darwin_env()
+    if argv is None:
+        # macOS may pass a process serial number (-psn_…) to apps launched from Finder.
+        argv = [a for a in sys.argv[1:] if not a.startswith("-psn_")]
+    args = build_parser().parse_args(argv)
     try:
         repo = Repo(args.repo, args.base, args.remote, args.forge)
         match args.cmd:

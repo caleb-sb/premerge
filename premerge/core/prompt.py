@@ -12,6 +12,12 @@ from premerge.core.gitrepo import GitError, Repo
 
 def cli_cmd() -> str:
     """How the agent should invoke premerge: `premerge` if on PATH and this install, else an absolute command."""
+    if getattr(sys, "frozen", False):
+        # Bundled app: the executable itself understands the CLI subcommands.
+        found = shutil.which("premerge")
+        if found and Path(found).resolve() == Path(sys.executable).resolve():
+            return "premerge"
+        return shlex.quote(sys.executable)
     found = shutil.which("premerge")
     if found:
         mine = {Path(sys.argv[0]).resolve(), Path(sys.executable).parent.joinpath("premerge").resolve()}

@@ -2,3 +2,9 @@
 __pycache__/
 *.egg-info/
 /shots/
+build/
+dist/
+*.spec
+*.iconset
+*.icns
+*.dmg

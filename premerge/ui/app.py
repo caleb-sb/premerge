@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 
+from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox
 
 from premerge.core.gitrepo import GitError, Repo
@@ -42,11 +43,43 @@ def create_window(repo: Repo, settings=None) -> tuple[QApplication, MainWindow, 
     return app, window, session
 
 
+def _launched_from_desktop() -> bool:
+    """True when started as a bundled app (Finder, Spotlight, Dock) rather than from a shell inside a repo."""
+    if not getattr(sys, "frozen", False):
+        return False
+    try:
+        Repo(".")
+    except GitError:
+        return True
+    return False
+
+
+def _initial_repo_path() -> str | None:
+    """The most recent repository that still opens, else one the user picks; None when they cancel."""
+    recent = QSettings().value("recent", [])
+    if isinstance(recent, str):
+        recent = [recent]
+    for root in recent or []:
+        try:
+            Repo(root)
+            return root
+        except GitError:
+            continue
+    chosen = QFileDialog.getExistingDirectory(None, "Choose a git repository to preview", str(Path.home()))
+    return chosen or None
+
+
 def run_gui(args) -> int:
     """Open the app for the repository named by the parsed CLI `args`."""
     _fix_platform_theme()
     app = QApplication(sys.argv[:1])
+    app.setApplicationName("premerge")
+    app.setOrganizationName("premerge")
     path = args.repo
+    if args.repo == "." and _launched_from_desktop():
+        path = _initial_repo_path()
+        if path is None:
+            return 1
     while True:
         try:
             repo = Repo(path, args.base, args.remote, args.forge)
