@@ -124,28 +124,32 @@ class MainWindow(QMainWindow):
         stretch.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         tb.addWidget(stretch)
 
+        # Split button: the main part copies the prompt, the chevron opens more options.
+        split = QFrame()
+        split.setObjectName("splitButton")
+        split_lay = QHBoxLayout(split)
+        split_lay.setContentsMargins(0, 0, 0, 0)
+        split_lay.setSpacing(0)
         self.agent_button = QToolButton()
+        self.agent_button.setObjectName("splitMain")
         self.agent_button.setIcon(icons.icon("copy"))
         self.agent_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.agent_button.setToolTip("Copy the open comments as a prompt for your coding agent")
-        self.agent_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         self.agent_button.clicked.connect(lambda: self.copy_agent_prompt())
-        agent_menu = QMenu(self.agent_button)
+        self.agent_menu_button = QToolButton()
+        self.agent_menu_button.setObjectName("splitArrow")
+        self.agent_menu_button.setIcon(icons.icon("chevron_down"))
+        self.agent_menu_button.setToolTip("More prompt options")
+        self.agent_menu_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        agent_menu = QMenu(self.agent_menu_button)
         agent_menu.addAction("Copy prompt including resolved").triggered.connect(
             lambda: self.copy_agent_prompt(include_all=True))
         agent_menu.addAction("Show prompt…").triggered.connect(self.show_prompt)
         agent_menu.addAction("Copy agent instructions").triggered.connect(self.copy_agent_instructions)
-        self.agent_button.setMenu(agent_menu)
-        tb.addWidget(self.agent_button)
-
-        self.create_pr_button = QToolButton()
-        self.create_pr_button.setObjectName("primary")
-        self.create_pr_button.setText("Create PR…")
-        self.create_pr_button.setIcon(icons.icon("git_pr", color=self._t.on_accent))
-        self.create_pr_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        self.create_pr_button.setToolTip("Push this branch and create the pull request (Ctrl+Shift+Enter)")
-        self.create_pr_button.clicked.connect(self.create_pr)
-        tb.addWidget(self.create_pr_button)
+        self.agent_menu_button.setMenu(agent_menu)
+        split_lay.addWidget(self.agent_button)
+        split_lay.addWidget(self.agent_menu_button)
+        tb.addWidget(split)
 
     def _build_central(self) -> None:
         central = QWidget()
@@ -396,7 +400,7 @@ class MainWindow(QMainWindow):
         if self._branch is not None and m["branch"] != self._branch:
             self.statusBar().showMessage(f"Switched to {m['branch']}", 6000)
         self._branch = m["branch"]
-        self.create_pr_button.setText("Create MR…" if m["forge"] == "gitlab" else "Create PR…")
+        self.create_action.setText("Create Merge Request…" if m["forge"] == "gitlab" else "Create Pull Request…")
         self.repo_label.setText(
             f"<b>{escape(m['repo'])}</b> &nbsp;<span style='color:{t.accent}'>{escape(m['branch'])}</span>"
             f" → <span style='color:{t.accent}'>{escape(m['target'])}</span>")

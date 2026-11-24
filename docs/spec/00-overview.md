@@ -123,7 +123,7 @@ Icons: Lucide-style line icons drawn by `ui/icons.py` (copied from pdfile and ex
 
 ```
 ┌ toolbar ──────────────────────────────────────────────────────────────────────────────────────────┐
-│ ⎇ repo  feat/x → main │ [Committed|+ Working tree] [Unified|Split] ⟳          [⧉ Agent prompt · 3] [Create PR…] │
+│ ⎇ repo  feat/x → main │ [Committed|+ Working tree] [Unified|Split] ⟳          [⧉ Agent prompt · 3 | ⌄] │
 ├───────────────────────────────────────────────────────────────────────────────────────────────────┤
 │  Add login flow                                                            (PR title, large)      │
 │  ● Local preview   Caleb wants to merge 3 commits into main from feat/x  ·  main is 2 ahead        │

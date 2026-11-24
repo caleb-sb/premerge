@@ -193,6 +193,19 @@ def stylesheet(t: Theme) -> str:
     }}
     QFrame#segment QToolButton {{ border-radius: 6px; padding: 5px; }}
 
+    QFrame#splitButton {{
+        border: 1px solid {t.border};
+        border-radius: 8px;
+    }}
+    QFrame#splitButton QToolButton#splitMain {{
+        border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 5px 10px 5px 8px;
+    }}
+    QFrame#splitButton QToolButton#splitArrow {{
+        border-left: 1px solid {t.border};
+        border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 5px 7px;
+    }}
+    QToolButton#splitArrow::menu-indicator {{ image: none; width: 0; }}
+
     QToolButton#primary {{
         background: {t.accent};
         color: {t.on_accent};

@@ -37,7 +37,7 @@ are never shown.
 - **Description.** Edit the PR title and description on the Overview tab. Until you save a draft, it is prefilled from
   the PR/MR template (`.github/pull_request_template.md`, `.gitlab/merge_request_templates/Default.md`, ...) if there is
   one, else from the commit messages.
-- **Create PR.** The toolbar button (or `premerge pr`) shows the plan (push, `gh pr create` / `glab mr create`) and only
+- **Create PR.** File → Create Pull Request… (Ctrl+Shift+Enter) or `premerge pr` shows the plan (push, `gh pr create` / `glab mr create`) and only
   runs it when you confirm.
 
 ## The agent loop

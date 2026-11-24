@@ -431,7 +431,7 @@ class OverviewPage(QWidget):
         self.repo_link.setStyleSheet(f"QToolButton {{ color: {NIGHT.accent}; border: none; padding: 0; }}")
         self.repo_link.clicked.connect(self._open_repo)
         self.side_layout.insertWidget(4, self.repo_link, 0, Qt.AlignmentFlag.AlignLeft)
-        hint = QLabel("When you're ready: <b>Create PR…</b> (toolbar) or <code>premerge pr</code>")
+        hint = QLabel("When you're ready: <b>File → Create Pull Request…</b> or <code>premerge pr</code>")
         hint.setObjectName("muted")
         hint.setWordWrap(True)
         self.side_layout.addSpacing(6)
