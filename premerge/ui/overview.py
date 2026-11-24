@@ -61,7 +61,7 @@ class _SummaryRow(QFrame):
         loc = QLabel(where)
         loc.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         row.addWidget(loc)
-        body = (comment["body"].strip().splitlines() or [""])[0].replace("`", "").lstrip("#>*- ").strip()
+        body = plain_first_line(comment["body"])
         text = QLabel(body)
         text.setObjectName("muted")
         text.setMinimumWidth(0)
@@ -477,7 +477,8 @@ class OverviewPage(QWidget):
         if d["saved"]:
             self.state_label.setText("· description draft")
         else:
-            self.state_label.setText(f"· not saved yet — prefilled from {d['source']}")
+            src = d["source"]
+            self.state_label.setText("· not saved yet" if src == "nothing" else f"· not saved yet — prefilled from {src}")
         if self._editing:
             self._check_external()
         else:
