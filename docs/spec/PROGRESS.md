@@ -50,3 +50,11 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Deviations accepted: `MainWindow(session, settings=None)` / `create_window(repo, settings=None)` take an optional
   `QSettings` (tests and shots pass a temp INI so the user's config is never touched); errors use a bad-coloured
   status-bar QLabel cleared after 8 s; "Agent prompt" without " · 0" when no open comments; chevron icon doesn't flip.
+
+## T06 — File tree widget — DONE
+- Verified: 74 tests pass; filetree shot inspected; also rendered a nested tree (compressed `docs/x/y`, nested dirs,
+  long-name elision, badges, renamed/deleted styling) and a collapsed directory.
+- Orchestrator fix: `setRootIsDecorated(True)` — with it off, only nested directories showed an expand arrow.
+- Deviations accepted: `FileTree(parent=None, t=NIGHT)`; filter via `setRowHidden` (no proxy model); copied files use
+  `st_renamed`; `tools/shot.py` runner grabs the returned widget if a shot function returns one.
+- Known cosmetic issue: the comment badge (bg_highlight) is barely visible on the selected row.

@@ -44,6 +44,19 @@ def _files(window, session) -> None:
     window.show_tab("files")
 
 
+@shot("filetree")
+def _filetree(window, session):
+    from premerge.ui.filetree import FileTree
+    tree = FileTree()
+    tree.resize(320, 600)
+    tree.show()
+    paths = [f["path"] for f in session.files]
+    tree.set_files(session.files, {paths[0]}, {paths[1]} if len(paths) > 1 else set(),
+                   {paths[-1]: 2, paths[min(2, len(paths) - 1)]: 1})
+    tree.select_path(paths[min(2, len(paths) - 1)])
+    return tree
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("out_dir")
@@ -65,11 +78,11 @@ def main(argv: list[str] | None = None) -> int:
         for name, fn in SHOTS.items():
             if args.only and name not in args.only:
                 continue
-            fn(window, session)
+            target = fn(window, session) or window
             qt.wait_until(lambda: not session.busy)
             qt.wait_until(lambda: False, 0.2)
             path = out / f"{name}.png"
-            window.grab().save(str(path))
+            target.grab().save(str(path))
             print(path)
         session.stop()
         window.close()
