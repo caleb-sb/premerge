@@ -87,6 +87,36 @@ def _diffview_split(window, session):
     return _diffview(session, "split")
 
 
+@shot("threads")
+def _threads(window, session):
+    from PySide6.QtWidgets import QVBoxLayout, QWidget
+    from premerge.ui import comments
+    from premerge.ui.comments import CommentThread, Composer
+    comments.EXPANDED.clear()
+
+    def comment(cid, status, replies):
+        return {
+            "id": cid, "kind": "line", "body": "Why import `sys` here?\n\n- it looks unused\n- is it for `argv`?",
+            "author": "you", "status": status, "created": "2026-11-24T10:00:00Z", "updated": "2026-11-24T10:00:00Z",
+            "head": "x", "path": "src/app.py", "oldPath": "src/app.py", "side": "new", "line": 14, "startLine": 12,
+            "anchorText": "", "context": [], "replies": replies,
+        }
+
+    reply = {"id": "r1", "author": "agent", "created": "2026-11-24T10:05:00Z",
+             "body": "Removed it; nothing used `sys`.\n\n1. dropped the import\n2. ran the tests"}
+    box = QWidget()
+    box.resize(960, 700)
+    lay = QVBoxLayout(box)
+    lay.setContentsMargins(16, 16, 16, 16)
+    lay.setSpacing(14)
+    lay.addWidget(Composer(label="Commenting on lines 12\u201314"))
+    lay.addWidget(CommentThread(comment("abc123", "open", [reply]), "Caleb", show_location=True))
+    lay.addWidget(CommentThread(comment("def456", "resolved", [reply]), "Caleb"))
+    lay.addStretch(1)
+    box.show()
+    return box
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("out_dir")

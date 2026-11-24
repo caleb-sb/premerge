@@ -65,3 +65,9 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Deviations accepted: split halves also have a 16 px sign column; selected rows draw numbers in fg (readability);
   spans kept when bold/italic even if fg; `scroll_target` is a 1×row_h transparent child at the row's y.
 - Not verified visually: gutter hover "+" box / pointing-hand cursor (no hover offscreen); Shift+click extend untested.
+
+## T08 — Comment thread and composer widgets — DONE
+- Verified: full suite passes; threads shot inspected (composer w/ label + hint, open thread with you/agent entries,
+  markdown code chips + lists, agent tint, compact reply + Resolve, collapsed resolved row).
+- Deviations accepted: `ago` uses "Nd ago" up to 29 days; compact composer Cancel/Esc clears + emits `cancelled`;
+  `update_comment` also preserves an open inline edit; collapsed row shows the raw first line of markdown.
