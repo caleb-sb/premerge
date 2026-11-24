@@ -89,10 +89,8 @@ def cmd_pr(repo: Repo, args) -> int:
 
 
 def cmd_gui(args) -> int:
-    try:
-        from premerge.ui.app import run_gui
-    except ImportError:
-        raise CliError("the app isn't built yet") from None
+    from premerge.ui.app import run_gui
+
     return run_gui(args)
 
 

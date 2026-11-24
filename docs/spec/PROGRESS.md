@@ -42,3 +42,11 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
   fire; initial `review["description"]` is None until the first load.
 - Known issue (spec-level): polling watches branch/HEAD/worktree/store only — a `git fetch` that moves the base ref
   isn't picked up until the next manual refresh.
+
+## T05 — App entry, main window shell, commits tab, screenshot tool — DONE
+- Verified: 68 tests pass; `tools/shot.py shots` writes overview/commits/files; inspected commits.png and overview.png
+  (toolbar, header with warn-coloured "main is 1 commit ahead", tabs with counts, +A −D, status bar — matches §5);
+  rendered a commit with a body and expanded it; `timeout 5 premerge -C <repo>` exits by timeout, no traceback.
+- Deviations accepted: `MainWindow(session, settings=None)` / `create_window(repo, settings=None)` take an optional
+  `QSettings` (tests and shots pass a temp INI so the user's config is never touched); errors use a bad-coloured
+  status-bar QLabel cleared after 8 s; "Agent prompt" without " · 0" when no open comments; chevron icon doesn't flip.
