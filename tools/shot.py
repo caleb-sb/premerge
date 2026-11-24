@@ -57,6 +57,36 @@ def _filetree(window, session):
     return tree
 
 
+def _diffview(session, view: str):
+    from PySide6.QtWidgets import QLabel, QScrollArea
+    from premerge.ui.diffview import DiffBody, row_keys
+    f = next(f for f in session.files if f["path"].endswith("app.py"))
+    area = QScrollArea()
+    area.setWidgetResizable(True)
+    area.resize(1100, 700)
+    body = DiffBody()
+    area.setWidget(body)
+    area.show()
+    body.set_content(f["path"], f["hunks"], view)
+    nums = sorted({int(k[4:]) for r in body.rows() for k in row_keys(r) if k.startswith("new:")})
+    a = nums[len(nums) // 2]
+    body.set_selection("new", a, a + 1)
+    label = QLabel("  Inserted widget slot (a comment thread goes here)")
+    label.setStyleSheet("background:#1f2335;padding:8px;")
+    body.set_inserts({body.row_index(f"new:{a + 1}"): [label]})
+    return area
+
+
+@shot("diffview-unified")
+def _diffview_unified(window, session):
+    return _diffview(session, "unified")
+
+
+@shot("diffview-split")
+def _diffview_split(window, session):
+    return _diffview(session, "split")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("out_dir")

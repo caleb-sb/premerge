@@ -58,3 +58,10 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Deviations accepted: `FileTree(parent=None, t=NIGHT)`; filter via `setRowHidden` (no proxy model); copied files use
   `st_renamed`; `tools/shot.py` runner grabs the returned widget if a shot function returns one.
 - Known cosmetic issue: the comment badge (bg_highlight) is barely visible on the selected row.
+
+## T07 — Syntax highlighting and the diff body widget — DONE
+- Verified: 82 tests pass (incl. 5 000-row render < 1.5 s); inspected diffview-unified/split shots (gutters, tints,
+  syntax colours, selection, insert slot, split pairing and empty cells) and a noeol render (⊘ in bad).
+- Deviations accepted: split halves also have a 16 px sign column; selected rows draw numbers in fg (readability);
+  spans kept when bold/italic even if fg; `scroll_target` is a 1×row_h transparent child at the row's y.
+- Not verified visually: gutter hover "+" box / pointing-hand cursor (no hover offscreen); Shift+click extend untested.
