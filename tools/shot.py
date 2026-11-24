@@ -39,9 +39,67 @@ def _commits(window, session) -> None:
     window.show_tab("commits")
 
 
+def _settle(session) -> None:
+    qt.wait_until(lambda: not session.busy)
+    qt.wait_until(lambda: False, 0.3)
+
+
+def _line_text(page, n: int) -> str:
+    return next(ln["s"] for ln in page._flat if ln["t"] != "-" and ln["n"] == n)
+
+
+def _thread_on(session, page, n: int, body: str, reply: str | None = None) -> dict:
+    c = session.store.add_comment({"kind": "line", "body": body, "path": "app.py", "oldPath": "app.py",
+                                   "side": "new", "startLine": n, "line": n, "anchorText": _line_text(page, n),
+                                   "context": [" " + _line_text(page, n)]})
+    if reply:
+        session.store.reply(c["id"], "agent", reply)
+    session.reload_review()
+    _settle(session)
+    return c
+
+
+def _files_page(window, session):
+    window.show_tab("files")
+    page = window.files_page
+    page.show_file("app.py")
+    _settle(session)
+    return page
+
+
 @shot("files")
 def _files(window, session) -> None:
+    page = _files_page(window, session)
+    _thread_on(session, page, 4, "Why is `sys` imported here?", "Removed the import; nothing used `sys`.")
+    page.diff.rangeSelected.emit("new", 6, 7)
+    page.diff.set_selection("new", 6, 7)
+
+
+@shot("files-split")
+def _files_split(window, session) -> None:
+    page = _files_page(window, session)
+    session.set_view("split")
+    _settle(session)
+
+
+@shot("files-outdated")
+def _files_outdated(window, session) -> None:
+    page = _files_page(window, session)
+    session.set_view("unified")
+    session.store.add_comment({"kind": "line", "body": "This line is gone now.", "path": "app.py",
+                               "oldPath": "app.py", "side": "new", "startLine": 5, "line": 5,
+                               "anchorText": "return legacy_value", "context": [" def f():", "+    return legacy_value"]})
+    session.store.add_comment({"kind": "file", "body": "Please split this module up.", "path": "app.py"})
+    session.reload_review()
+    _settle(session)
+    page._scroll.verticalScrollBar().setValue(0)
+
+
+@shot("files-binary")
+def _files_binary(window, session) -> None:
     window.show_tab("files")
+    window.files_page.show_file("bin.dat")
+    _settle(session)
 
 
 @shot("filetree")

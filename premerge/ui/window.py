@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMainWindow, QSizePo
 
 from premerge.ui import icons, theme
 from premerge.ui.commits import CommitsPage
+from premerge.ui.filepage import FilesPage
 from premerge.ui.session import Session
 
 TABS = ("overview", "commits", "files")
@@ -187,7 +188,7 @@ class MainWindow(QMainWindow):
         return QLabel("Overview — T10")
 
     def _make_files(self) -> QWidget:
-        return QLabel("Files — T09")
+        return FilesPage(self.session, self.settings)
 
     def _build_status(self) -> None:
         bar = self.statusBar()
@@ -236,6 +237,21 @@ class MainWindow(QMainWindow):
             a = go.addAction(text)
             a.setShortcut(QKeySequence(f"Ctrl+{i}"))
             a.triggered.connect(lambda _=False, n=name: self.show_tab(n))
+        go.addSeparator()
+        for text, key, delta in (("Next File", "Alt+Down", 1), ("Previous File", "Alt+Up", -1)):
+            a = go.addAction(text)
+            a.setShortcut(QKeySequence(key))
+            a.triggered.connect(lambda _=False, d=delta: self.step_file(d))
+
+    def step_file(self, delta: int) -> None:
+        """Show the next (1) or previous (-1) changed file."""
+        self.show_tab("files")
+        self.files_page.step(delta)
+
+    def show_file(self, path: str, comment_id: str | None = None) -> None:
+        """Open the Files tab on `path`, optionally flashing a comment thread."""
+        self.show_tab("files")
+        self.files_page.show_file(path, comment_id)
 
     # ---- state ---------------------------------------------------------
 

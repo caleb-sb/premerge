@@ -125,6 +125,7 @@ class FileTree(QWidget):
         self._collapsed: set[str] = set()
         self._items: dict[str, QStandardItem] = {}
         self._dirs: dict[str, QStandardItem] = {}
+        self._order: list[str] = []
         self._filtering = False
         self._syncing = False
 

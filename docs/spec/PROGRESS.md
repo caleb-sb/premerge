@@ -7,7 +7,7 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Venv created by the orchestrator before T01 (system Python 3.15.2): `pip -U pip`, `pip install PySide6 Pygments`
   → PySide6 6.12.0 (meta-package also pulls PySide6_Essentials/Addons/Pdf/WebEngine wheels; WebEngine is never
   imported), Pygments 2.21.0. T01 therefore only runs `pip install -e .`.
-- Schedule: tasks dispatched sequentially with a 45-minute wait between tasks (user request).
+- Schedule: tasks dispatched sequentially with a 45-minute wait between tasks (user request); the user removed the wait after T08 — from T09 on, tasks run back to back.
 
 ## T01 — Package skeleton, venv, and core port — DONE
 - Commit: see `git log` ("T01: Package skeleton, venv, and core port").
@@ -71,3 +71,17 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
   markdown code chips + lists, agent tint, compact reply + Resolve, collapsed resolved row).
 - Deviations accepted: `ago` uses "Nd ago" up to 29 days; compact composer Cancel/Esc clears + emits `cancelled`;
   `update_comment` also preserves an open inline edit; collapsed row shows the raw first line of markdown.
+
+## T09 — Files changed page (integration) — DONE
+- Verified: 99 tests pass; inspected files/files-split/files-outdated/files-binary shots (header, threads in the diff,
+  composer under the selection, outdated mini-diff above the diff, binary note with Full file disabled). Exercised by
+  hand: splitter state saved under `files/splitter` in the injected settings and restored in a new window; a 4 000-line
+  file shows "Large diff — 4000 lines" + Load diff, which renders it.
+- Orchestrator fix: `FileTree.ordered_paths()` raised AttributeError before the first `set_files` (`_order` now
+  initialised in `__init__`).
+- Deviations accepted: `FilesPage(session, settings=None, parent=None)`; Go menu Next/Previous File use Alt+Down/Alt+Up
+  (J/K stay page-local to avoid ambiguous shortcuts); threads/composers wrapped in a padded slot; line comments whose
+  diff isn't shown (binary / unloaded large diff) go to the outdated area; Viewed → next unviewed wraps; Full file
+  resets on file switch.
+- Known issues: Alt+Up/Down fire even while a text editor has focus; after switching to split the open composer stays
+  but the selected-range highlight is cleared; N/Shift+N untested.
