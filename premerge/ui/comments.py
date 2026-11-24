@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import icons
-from .markdown import MarkdownView
+from .markdown import MarkdownView, plain_first_line
 from .theme import NIGHT
 
 EXPANDED: set[str] = set()  # ids of resolved threads the user expanded (survives widget rebuilds)
@@ -396,7 +396,7 @@ class CommentThread(QFrame):
         title = QLabel("Resolved")
         title.setStyleSheet(f"color: {NIGHT.ok}; font-weight: bold;")
         layout.addWidget(title)
-        first = (c["body"].strip().splitlines() or [""])[0]
+        first = plain_first_line(c["body"])
         snippet = _ElidedLabel(first)
         snippet.setStyleSheet(f"color: {NIGHT.fg_dark};")
         layout.addWidget(snippet, 1)

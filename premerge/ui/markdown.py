@@ -1,6 +1,7 @@
 """A read-only Markdown view that sizes itself to its content."""
 
 import html
+import re
 
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QColor, QFontDatabase, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
@@ -92,3 +93,11 @@ class MarkdownView(QTextBrowser):
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         self._fit()
+
+
+def plain_first_line(text: str) -> str:
+    """The first line of `text` with common Markdown markers removed, for one-line previews."""
+    line = (text.strip().splitlines() or [""])[0]
+    line = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)
+    line = re.sub(r"(\*\*|__|`)", "", line)
+    return line.lstrip("#>*-+ ").strip()

@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 from premerge.core.paths import tree_order
 from premerge.ui import icons
 from premerge.ui.comments import CommentThread, Composer, _avatar
-from premerge.ui.markdown import MarkdownView
+from premerge.ui.markdown import MarkdownView, plain_first_line
 from premerge.ui.theme import NIGHT
 
 MAIN_MAX = 900
@@ -446,7 +446,7 @@ class OverviewPage(QWidget):
     def _sync_sidebar(self) -> None:
         m = self.session.meta or {}
         v = self._side_values
-        v["Target"].setText(f"{m.get('remote') or ''}/{m.get('target', '')}")
+        v["Target"].setText("/".join(x for x in (m.get("remote"), m.get("target")) if x))
         forge = m.get("forge")
         v["Forge"].setText(FORGES.get(forge, "Unknown — set <code>git config premerge.forge</code>"))
         self.repo_link.setVisible(bool(m.get("webUrl")))
