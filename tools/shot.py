@@ -194,6 +194,27 @@ def _threads(window, session):
     return box
 
 
+@shot("prdialog")
+def _prdialog(window, session):
+    from unittest import mock
+    from premerge.ui.prdialog import CreatePrDialog
+    repo = Repo(session.repo.root, forge="github")
+    fake = type("S", (), {"repo": repo, "store": session.store})()
+    with mock.patch("shutil.which", return_value=None):
+        dialog = CreatePrDialog(fake, window)
+        dialog.show()
+        qt.wait_until(lambda: dialog.plan is not None)
+    return dialog
+
+
+@shot("prompt-dialog")
+def _prompt_dialog(window, session):
+    from premerge.ui.prdialog import PromptDialog
+    dialog = PromptDialog(session.prompt_text(), window)
+    dialog.show()
+    return dialog
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("out_dir")

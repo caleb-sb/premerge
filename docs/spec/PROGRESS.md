@@ -93,3 +93,15 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
 - Orchestrator fix: summary rows strip backticks and leading Markdown markers from the first line.
 - Deviations accepted: confirms go through `OverviewPage._confirm()` (patched in tests); sidebar widens to 900 px when
   stacked; imports the private `_avatar` helper from `ui/comments.py`; Edit button hidden while editing.
+
+## T11 — Agent prompt, Create PR dialog, Open repository, polish — DONE
+- Verified: 110 tests pass; inspected prdialog (title, target/branch/remote, description source, bad-coloured
+  "`gh` is not installed" problem, mono command box, Draft/Push checkboxes, Create disabled) and prompt-dialog shots.
+  Safety checked: the only `publish.execute` call in tests runs after asserting `shutil.which("gh")` is the fake, with
+  push off; the prdialog shot patches `shutil.which` → None and only plans.
+- Deviations accepted: extra `PromptDialog` in prdialog.py; "Copy prompt including resolved" calls
+  `core.prompt.render_prompt(..., include_all=True)` directly (Session.prompt_text has no flag); Open Repository builds
+  Session+MainWindow directly (avoids a circular import with app.py) and doesn't carry over --base/--remote/--forge;
+  directory picker is the overridable `MainWindow._choose_directory()`; About version falls back to "dev".
+- Known cosmetic: command box has empty space below the commands; prompt-dialog shot shows the empty-review prompt.
+- Not verified: Create against a real remote (by design — never run).

@@ -1,21 +1,28 @@
 """The main window: toolbar, PR header, tabs, status bar and menus."""
 from __future__ import annotations
 
+import importlib.metadata
 from datetime import datetime
 from html import escape
+from pathlib import Path
 
 from PySide6.QtCore import QByteArray, QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QGuiApplication, QKeySequence
-from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMainWindow, QSizePolicy,
-                               QStackedWidget, QTabBar, QToolButton, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QFileDialog, QFrame, QHBoxLayout, QLabel, QMainWindow, QMenu, QMessageBox,
+                               QSizePolicy, QStackedWidget, QTabBar, QToolButton, QVBoxLayout, QWidget)
 
+from premerge.core import prompt
+from premerge.core.gitrepo import GitError, Repo
 from premerge.ui import icons, theme
 from premerge.ui.commits import CommitsPage
 from premerge.ui.filepage import FilesPage
 from premerge.ui.overview import OverviewPage
+from premerge.ui.prdialog import CreatePrDialog, PromptDialog
 from premerge.ui.session import Session
 
 TABS = ("overview", "commits", "files")
+RECENT_MAX = 8
+_windows: list["MainWindow"] = []
 
 
 def _plural(n: int, word: str) -> str:
@@ -30,6 +37,7 @@ class MainWindow(QMainWindow):
         self.session = session
         self.settings = settings or QSettings()
         self._t = theme.NIGHT
+        self._branch: str | None = None
         self.setWindowTitle("premerge")
         self.resize(1440, 900)
         self._build_toolbar()
@@ -47,6 +55,7 @@ class MainWindow(QMainWindow):
         session.error.connect(self._show_error)
 
         self._restore()
+        self._remember_recent(session.repo.root)
         self.refresh_meta()
         self.refresh_files()
         self.refresh_commits()
@@ -119,7 +128,14 @@ class MainWindow(QMainWindow):
         self.agent_button.setIcon(icons.icon("copy"))
         self.agent_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.agent_button.setToolTip("Copy the open comments as a prompt for your coding agent")
-        self.agent_button.clicked.connect(self.copy_agent_prompt)
+        self.agent_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        self.agent_button.clicked.connect(lambda: self.copy_agent_prompt())
+        agent_menu = QMenu(self.agent_button)
+        agent_menu.addAction("Copy prompt including resolved").triggered.connect(
+            lambda: self.copy_agent_prompt(include_all=True))
+        agent_menu.addAction("Show prompt…").triggered.connect(self.show_prompt)
+        agent_menu.addAction("Copy agent instructions").triggered.connect(self.copy_agent_instructions)
+        self.agent_button.setMenu(agent_menu)
         tb.addWidget(self.agent_button)
 
         self.create_pr_button = QToolButton()
@@ -127,8 +143,8 @@ class MainWindow(QMainWindow):
         self.create_pr_button.setText("Create PR…")
         self.create_pr_button.setIcon(icons.icon("git_pr", color=self._t.on_accent))
         self.create_pr_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-        self.create_pr_button.setEnabled(False)
-        self.create_pr_button.setToolTip("Coming soon")
+        self.create_pr_button.setToolTip("Push this branch and create the pull request (Ctrl+Shift+Enter)")
+        self.create_pr_button.clicked.connect(self.create_pr)
         tb.addWidget(self.create_pr_button)
 
     def _build_central(self) -> None:
@@ -210,9 +226,16 @@ class MainWindow(QMainWindow):
         self.open_action = file_menu.addAction("Open Repository…")
         self.open_action.setShortcut(QKeySequence.StandardKey.Open)
         self.open_action.triggered.connect(self.open_repository)
+        self.recent_menu = file_menu.addMenu("Open Recent")
+        self.recent_menu.aboutToShow.connect(self._fill_recent)
+        file_menu.addSeparator()
         quit_action = file_menu.addAction("Quit")
         quit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        quit_action.setMenuRole(QAction.MenuRole.QuitRole)
         quit_action.triggered.connect(self.close)
+        self.create_action = file_menu.addAction("Create Pull Request…")
+        self.create_action.setShortcut(QKeySequence("Ctrl+Shift+Return"))
+        self.create_action.triggered.connect(self.create_pr)
 
         view = mb.addMenu("&View")
         self.mode_actions: dict[str, QAction] = {}
@@ -246,6 +269,10 @@ class MainWindow(QMainWindow):
             a.setShortcut(QKeySequence(key))
             a.triggered.connect(lambda _=False, d=delta: self.step_file(d))
 
+        about = mb.addMenu("&Help").addAction("About premerge")
+        about.setMenuRole(QAction.MenuRole.AboutRole)
+        about.triggered.connect(self.show_about)
+
     def step_file(self, delta: int) -> None:
         """Show the next (1) or previous (-1) changed file."""
         self.show_tab("files")
@@ -265,13 +292,81 @@ class MainWindow(QMainWindow):
     def _tab_changed(self, index: int) -> None:
         self.stack.setCurrentIndex(index)
 
-    def open_repository(self) -> None:
-        """Placeholder for T11."""
+    def _choose_directory(self) -> str:
+        """Ask for a repository directory ("" if cancelled); overridable in tests."""
+        return QFileDialog.getExistingDirectory(self, "Open repository", self.session.repo.root)
 
-    def copy_agent_prompt(self) -> None:
-        """Copy the agent prompt to the clipboard (T11 replaces this)."""
-        QGuiApplication.clipboard().setText(self.session.prompt_text())
-        self.statusBar().showMessage("Agent prompt copied", 4000)
+    def open_repository(self) -> None:
+        """Pick a directory and open it in a new window, closing this one."""
+        path = self._choose_directory()
+        if path:
+            self.open_path(path)
+
+    def open_path(self, path: str) -> bool:
+        """Open the repository at `path` in a new window; show the error and return False if it isn't one."""
+        try:
+            repo = Repo(path)
+        except GitError as exc:
+            QMessageBox.warning(self, "premerge", str(exc))
+            return False
+        session = Session(repo)
+        window = MainWindow(session, self.settings)
+        _windows.append(window)
+        window.show()
+        session.reload_all()
+        session.start()
+        self.close()
+        return True
+
+    def _recent(self) -> list[str]:
+        value = self.settings.value("recent", [])
+        return [value] if isinstance(value, str) else [str(v) for v in value or []]
+
+    def _remember_recent(self, root: str) -> None:
+        recent = [root] + [r for r in self._recent() if r != root]
+        self.settings.setValue("recent", recent[:RECENT_MAX])
+
+    def _fill_recent(self) -> None:
+        self.recent_menu.clear()
+        recent = [r for r in self._recent() if r != self.session.repo.root]
+        for root in recent:
+            self.recent_menu.addAction(root).triggered.connect(lambda _=False, r=root: self.open_path(r))
+        self.recent_menu.setEnabled(bool(recent))
+
+    def create_pr(self) -> None:
+        """Open the Create PR/MR dialog (nothing runs until the user clicks Create there)."""
+        self._dialog = CreatePrDialog(self.session, self)
+        self._dialog.open()
+
+    def copy_agent_prompt(self, include_all: bool = False) -> None:
+        """Copy the agent prompt (open comments, or everything) to the clipboard."""
+        n = self.session.open_count()
+        QGuiApplication.clipboard().setText(
+            prompt.render_prompt(self.session.repo, self.session.store.load(), include_all=include_all))
+        self.statusBar().showMessage(
+            f"Copied {_plural(n, 'comment')} \u2014 paste into your agent, or run `premerge comments` there", 6000)
+
+    def show_prompt(self) -> None:
+        """Show the agent prompt in a dialog."""
+        self._dialog = PromptDialog(self.session.prompt_text(), self)
+        self._dialog.open()
+
+    def copy_agent_instructions(self) -> None:
+        """Copy a one-paragraph instruction telling an agent how to use the CLI."""
+        cli = prompt.cli_cmd()
+        QGuiApplication.clipboard().setText(
+            f'Run `{cli} comments` in {self.session.repo.root}, address each comment, then reply with '
+            f'`{cli} reply <id> --resolve "\u2026"`.')
+        self.statusBar().showMessage("Copied agent instructions", 4000)
+
+    def show_about(self) -> None:
+        """Show the About box."""
+        try:
+            version = importlib.metadata.version("premerge")
+        except importlib.metadata.PackageNotFoundError:
+            version = "dev"
+        QMessageBox.about(self, "About premerge",
+                          f"<b>premerge</b> {escape(version)}<br>Preview your branch as a pull request.")
 
     def _sync_mode(self, mode: str) -> None:
         self.mode_buttons[mode].setChecked(True)
@@ -298,6 +393,10 @@ class MainWindow(QMainWindow):
         self.view_actions[self.session.view].setChecked(True)
         if not m:
             return
+        if self._branch is not None and m["branch"] != self._branch:
+            self.statusBar().showMessage(f"Switched to {m['branch']}", 6000)
+        self._branch = m["branch"]
+        self.create_pr_button.setText("Create MR…" if m["forge"] == "gitlab" else "Create PR…")
         self.repo_label.setText(
             f"<b>{escape(m['repo'])}</b> &nbsp;<span style='color:{t.accent}'>{escape(m['branch'])}</span>"
             f" → <span style='color:{t.accent}'>{escape(m['target'])}</span>")
@@ -317,7 +416,8 @@ class MainWindow(QMainWindow):
         desc = self.session.review.get("description")
         title = desc["title"] if desc else (self.session.meta or {}).get("branch", "")
         self.title_label.setText(title)
-        self.setWindowTitle(f"{title} — premerge" if title else "premerge")
+        repo = (self.session.meta or {}).get("repo", "")
+        self.setWindowTitle(" \u2014 ".join(p for p in (title, repo, "premerge") if p))
         n = self.session.open_count()
         self.agent_button.setText(f"Agent prompt · {n}" if n else "Agent prompt")
 
