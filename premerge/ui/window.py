@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMainWindow, QSizePo
 from premerge.ui import icons, theme
 from premerge.ui.commits import CommitsPage
 from premerge.ui.filepage import FilesPage
+from premerge.ui.overview import OverviewPage
 from premerge.ui.session import Session
 
 TABS = ("overview", "commits", "files")
@@ -185,7 +186,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
 
     def _make_overview(self) -> QWidget:
-        return QLabel("Overview — T10")
+        page = OverviewPage(self.session)
+        page.openComment.connect(self.show_file)
+        return page
 
     def _make_files(self) -> QWidget:
         return FilesPage(self.session, self.settings)

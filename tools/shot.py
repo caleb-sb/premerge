@@ -32,6 +32,25 @@ def shot(name: str):
 @shot("overview")
 def _overview(window, session) -> None:
     window.show_tab("overview")
+    c = session.store.add_comment({"kind": "general", "body": "Is the overall approach right? I'd like fewer moving parts."})
+    session.store.reply(c["id"], "agent", "I kept the change small: one new helper and no new dependencies.")
+    session.store.add_comment({"kind": "line", "body": "Why is `sys` imported here?", "path": "app.py", "oldPath": "app.py",
+                               "side": "new", "startLine": 4, "line": 4, "anchorText": "import sys", "context": [" import os"]})
+    d = session.store.add_comment({"kind": "file", "body": "Please split this module up.", "path": "app.py"})
+    session.store.reply(d["id"], "agent", "Done", resolve=True)
+    session.reload_review()
+    _settle(session)
+
+
+@shot("overview-edit")
+def _overview_edit(window, session) -> None:
+    window.show_tab("overview")
+    page = window.overview_page
+    page.start_edit()
+    page.title_edit.setText("Add login flow")
+    page.body_edit.setPlainText("## Summary\n\nAdds a **login** flow.\n\n- one\n- two\n\n```py\nprint('hi')\n```\n")
+    page.preview_button.click()
+    _settle(session)
 
 
 @shot("commits")

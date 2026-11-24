@@ -85,3 +85,11 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
   resets on file switch.
 - Known issues: Alt+Up/Down fire even while a text editor has focus; after switching to split the open composer stays
   but the selected-range highlight is cleared; N/Shift+N untested.
+
+## T10 — Overview page (PR description, conversation, summary) — DONE
+- Verified: 105 tests pass; inspected overview and overview-edit shots (description card with "prefilled from template",
+  conversation thread + agent reply, general composer, review-comment summary with status dots and bot marker,
+  sidebar; edit mode with title, Write/Preview, rendered preview, Cancel/Save). Subagent checked the <1000 px layout.
+- Orchestrator fix: summary rows strip backticks and leading Markdown markers from the first line.
+- Deviations accepted: confirms go through `OverviewPage._confirm()` (patched in tests); sidebar widens to 900 px when
+  stacked; imports the private `_avatar` helper from `ui/comments.py`; Edit button hidden while editing.
