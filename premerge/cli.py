@@ -96,7 +96,7 @@ def cmd_gui(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="premerge", description="Local pull/merge request preview and review.")
-    ap.add_argument("-C", dest="repo", default=".", help="run as if started in this directory")
+    ap.add_argument("-C", dest="repo", metavar="DIR", default=".", help="run as if started in this directory")
     ap.add_argument("--base", help="base ref (default: git config premerge.base, <remote>/HEAD, then main/master)")
     ap.add_argument("--remote", help="remote to target (default: upstream's remote, else origin)")
     ap.add_argument("--forge", choices=["github", "gitlab"], help="override forge detection")

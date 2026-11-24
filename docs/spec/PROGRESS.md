@@ -105,3 +105,16 @@ Orchestrator log. One section per task: status, commit, deviations accepted, fix
   directory picker is the overridable `MainWindow._choose_directory()`; About version falls back to "dev".
 - Known cosmetic: command box has empty space below the commands; prompt-dialog shot shows the empty-review prompt.
 - Not verified: Create against a real remote (by design — never run).
+
+## T12 — README, agent skill, end-to-end QA — DONE
+- Verified: 111 tests pass (incl. e2e agent loop: comment in the Files page → `premerge comments` subprocess →
+  working-tree edit → `premerge reply --resolve` → thread collapses with the agent reply, toolbar count 0, worktree
+  diff shows the edit); all 13 shots regenerate with only the offscreen `propagateSizeHints()` noise; core has no Qt;
+  no colours outside theme.py; README and skills/premerge-review/SKILL.md read and checked.
+- Orchestrator fix: `-C` metavar is `DIR` (matches README/spec).
+- QA notes: macOS review found no Linux-only calls outside platform guards; Ctrl+R is redundant with
+  StandardKey.Refresh on macOS; Alt+Up/Down = Option+Up/Down there. README clone URL is a placeholder (no remote).
+- No symlinks created (user to decide).
+
+## Final
+- Full suite: 111 tests OK (~34 s). All shots regenerated.
