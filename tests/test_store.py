@@ -1,5 +1,6 @@
 import json
 import unittest
+from pathlib import Path
 
 from premerge.core.gitrepo import Repo
 from premerge.core.store import Store, StoreError
@@ -95,7 +96,7 @@ class StoreTests(FixtureCase):
         self.assertEqual(p.parent, self.repo.common_dir / "premerge")
         self.assertEqual(p.name, "feat__thing.json")
         self.assertEqual(json.loads(p.read_text())["branch"], "feat/thing")
-        self.assertTrue(str(p).startswith(str(self.work / ".git")))
+        self.assertTrue(str(Path(p).resolve()).startswith(str((self.work / ".git").resolve())))
 
     def test_branch_switch_uses_other_file(self):
         self.store.add_comment({"kind": "general", "body": "on feat"})
